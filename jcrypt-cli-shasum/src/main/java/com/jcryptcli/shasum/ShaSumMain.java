@@ -8,6 +8,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiConsumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -21,18 +22,19 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 /**
- * Hello world!
+ * ShaSumMain !
  *
  */
-public class App 
+public class ShaSumMain 
 {
-	private static final Logger logger = Logger.getLogger(App.class.getName());
+	private static final Logger LOG = Logger.getLogger(ShaSumMain.class.getName());
 	
     public static void main( String[] args )
     {
-    	logger.setLevel(Level.FINE);
+    	LOG.setLevel(Level.FINE);
     	
-        Option help = helpOption();
+        final Option help = helpOption();
+        
         Option algorithm = createAlgorithm();
         
         
@@ -44,50 +46,65 @@ public class App
         try {
             CommandLine cmdLine = parser.parse(options, args);
             
-            if(cmdLine.hasOption("h") && cmdLine.getArgList().size() == 1) {
+            if(cmdHasHelpArgument(cmdLine)) {
                 System.out.println(options.getOption("help").getDescription());
                 return;
             }
             
-            String a = null;
-            if(cmdLine.hasOption("a")) {
-            	System.out.println(cmdLine.getOptionValue("a"));
-            	a = cmdLine.getOptionValue("a");
-            }
-            List<String> argList = cmdLine.getArgList();
+            // Extract input algorithm
+            final String alg = extractAlgorithm(cmdLine);
+            // Read user provided inputs
+            final List<String> argList = cmdLine.getArgList();
             
-            Map<String, byte[]> inputs = argList.stream().collect(Collectors.toMap(arg -> arg, arg -> {
-            	if(Files.exists(Paths.get(arg))) {
-            		try {
-						return Files.readAllBytes(Paths.get(arg));
-					} catch (IOException e) {
-						System.out.println("Error reading - "+arg+" : "+e.getMessage());
-						return new byte[0];
-					}
-            	} else {
-            		return arg.getBytes();
-            	}
-            }));
+            final Map<String, byte[]> inputs = mapInputParamsToMaps(argList);
             
-            if (a == null) a = "1";
+            inputs.forEach(printHashValuesUsingAlg(alg));
             
-            final String alg = a;
-            inputs.forEach((key, value) -> {
-            	try {
-					MessageDigest messageDigest = MessageDigest.getInstance("SHA-"+alg);
-					messageDigest.reset();
-					byte[] digest = messageDigest.digest(value);
-					String shaDigest = DatatypeConverter.printHexBinary(digest);
-					System.out.println(shaDigest+"\t\t"+key);
-				} catch (NoSuchAlgorithmException e) {
-					e.printStackTrace();
-				}
-            });
             System.out.println(argList);
         } catch (ParseException e) {
             e.printStackTrace();
 		}
     }
+
+	private static BiConsumer<? super String, ? super byte[]> printHashValuesUsingAlg(final String alg) {
+		return (key, value) -> {
+			try {
+				final MessageDigest messageDigest = MessageDigest.getInstance("SHA-"+alg);
+				messageDigest.reset();
+				byte[] digest = messageDigest.digest(value);
+				String shaDigest = DatatypeConverter.printHexBinary(digest);
+				System.out.println(shaDigest+"\t\t"+key);
+			} catch (NoSuchAlgorithmException e) {
+				e.printStackTrace();
+			}
+		};
+	}
+
+	private static Map<String, byte[]> mapInputParamsToMaps(final List<String> argList) {
+		return argList.stream().collect(Collectors.toMap(arg -> arg, arg -> {
+			if(Files.exists(Paths.get(arg))) {
+				try {
+					return Files.readAllBytes(Paths.get(arg));
+				} catch (IOException e) {
+					System.out.println("Error reading - "+arg+" : "+e.getMessage());
+					return new byte[0];
+				}
+			} else {
+				return arg.getBytes();
+			}
+		}));
+	}
+
+	private static boolean cmdHasHelpArgument(CommandLine cmdLine) {
+		return cmdLine.hasOption("h") && cmdLine.getArgList().size() == 1;
+	}
+
+	private static String extractAlgorithm(CommandLine cmdLine) {
+		if(cmdLine.hasOption("a")) {
+			System.out.println(cmdLine.getOptionValue("a"));
+			return cmdLine.getOptionValue("a");
+		}else {return "1";}
+	}
 
 	private static Options buildOptions(Option ... opts) {
 		if(opts == null || opts.length > 10) throw new IllegalArgumentException("The option size in invlaid");

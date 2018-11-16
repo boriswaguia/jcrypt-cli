@@ -84,7 +84,7 @@
             <manifest>
               <addClasspath>true</addClasspath>
               <classpathPrefix>lib/</classpathPrefix>
-              <mainClass>com.jcryptcli.shasum.App</mainClass>
+              <mainClass>com.jcryptcli.shasum.ShaSumMain</mainClass>
             </manifest>
           </archive>
         </configuration>
@@ -108,6 +108,26 @@
             </filter>
           </filters>
         </configuration>
+      </plugin>
+      
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-pmd-plugin</artifactId>
+        <version>3.11.0</version>
+        <configuration>
+            <failOnViolation>true</failOnViolation>
+            <printFailingErrors>true</printFailingErrors>
+            <rulesets>
+            	<ruleset>qa/pmd/maven-pmd-plugin-default.xml</ruleset>
+            </rulesets>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>
