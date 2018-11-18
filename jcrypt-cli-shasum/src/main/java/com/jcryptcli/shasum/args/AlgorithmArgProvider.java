@@ -13,23 +13,38 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  ******************************************************************************/
-package com.jcryptcli.shasum;
 
-import static org.junit.Assert.assertTrue;
+package com.jcryptcli.shasum.args;
 
-import org.junit.Test;
+import org.apache.commons.cli.Option;
 
 /**
- * Unit test for simple App.
+ *
+ * HelpArgProvider
+ *
+ * @author bwa
+ *
  */
-public class ShaSumMainTest 
-{
-    /**
-     * Rigorous Test :-)
-     */
-    @Test
-    public void shouldAnswerWithTrue()
-    {
-        assertTrue( true );
-    }
+public class AlgorithmArgProvider implements HasCmdLineArg{
+
+	/* (non-Javadoc)
+	 * @see com.jcryptcli.shasum.args.HasCmdLineArg#getArg()
+	 */
+	@Override
+	public Option getArg() {
+		return createAlgorithm();
+	}
+
+	private static Option createAlgorithm() {
+		
+		return Option.builder("a")
+				.argName("algorithm")
+				.hasArg()
+				.longOpt("algorithm")
+				.numberOfArgs(1)
+				.required(false)
+				.desc("1 (default), 224, 256, 384, 512, 512224, 512256")
+				.build();
+	}
+
 }

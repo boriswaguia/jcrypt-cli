@@ -1,3 +1,18 @@
+/*******************************************************************************
+ * Copyright 2018 Adorsys GmbH & Co KG
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License.  You may obtain a copy
+ * of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
+ ******************************************************************************/
 package com.jcryptcli.shasum;
 
 import java.io.IOException;
@@ -5,77 +20,91 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-
 import javax.xml.bind.DatatypeConverter;
-
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import com.jcryptcli.shasum.args.CmdLineArgumentFactory;
 /**
  * ShaSumMain !
  *
  */
-public class ShaSumMain 
+public final class ShaSumMain 
 {
+	/** Logger */
 	private static final Logger LOG = Logger.getLogger(ShaSumMain.class.getName());
 	
-    public static void main( String[] args )
-    {
-    	LOG.setLevel(Level.FINE);
-    	
-        final Option help = helpOption();
-        
-        Option algorithm = createAlgorithm();
-        
-        
-        // Build options
-        Options options = buildOptions(help, algorithm);
-        
-        CommandLineParser parser = new DefaultParser();
+	private ShaSumMain() {}
+	
+	/** Main method */
+    public static void main( final String[] args ) {
 
         try {
-            CommandLine cmdLine = parser.parse(options, args);
+        	// Create possible options that can be used in command line
+        	final Options cliArgs = CmdLineArgumentFactory.getArgs();
+        	
+        	// Create a command line parser
+        	final CommandLineParser parser = new DefaultParser();
+        	
+        	// Create a representation of arguments passed in the command line
+            final CommandLine cmdLine = parser.parse(cliArgs, args);
             
+            // If the command has a help argument
             if(cmdHasHelpArgument(cmdLine)) {
-                System.out.println(options.getOption("help").getDescription());
+            	LOG.info(extractHelpFromOptions(cliArgs));
                 return;
             }
             
             // Extract input algorithm
             final String alg = extractAlgorithm(cmdLine);
             // Read user provided inputs
-            final List<String> argList = cmdLine.getArgList();
+            final List<String> argList = getCmdLineArgList(cmdLine);
             
+            // Maps values to be encrypted into a value and value's byte map 
             final Map<String, byte[]> inputs = mapInputParamsToMaps(argList);
             
-            inputs.forEach(printHashValuesUsingAlg(alg));
-            
-            System.out.println(argList);
+            // Print every value in the map its hash
+            printHashValuesUsingAlg(alg, inputs);
         } catch (ParseException e) {
-            e.printStackTrace();
+        	LOG.severe(e.getMessage());
 		}
     }
+
+	private static void printHashValuesUsingAlg(final String alg, final Map<String, byte[]> inputs) {
+		inputs.forEach(printHashValuesUsingAlg(alg));
+	}
+
+	private static List<String> getCmdLineArgList(final CommandLine cmdLine) {
+		return cmdLine.getArgList();
+	}
+
+	private static String extractHelpFromOptions(final Options options) {
+		final Option option = options.getOption("help");
+		return getOptionDescription(option);
+	}
+
+	private static String getOptionDescription(final Option option) {
+		return option.getDescription();
+	}
 
 	private static BiConsumer<? super String, ? super byte[]> printHashValuesUsingAlg(final String alg) {
 		return (key, value) -> {
 			try {
 				final MessageDigest messageDigest = MessageDigest.getInstance("SHA-"+alg);
 				messageDigest.reset();
-				byte[] digest = messageDigest.digest(value);
-				String shaDigest = DatatypeConverter.printHexBinary(digest);
-				System.out.println(shaDigest+"\t\t"+key);
+				final byte[] digest = messageDigest.digest(value);
+				final String shaDigest = DatatypeConverter.printHexBinary(digest);
+				LOG.info(shaDigest+"\t\t"+key);
 			} catch (NoSuchAlgorithmException e) {
-				e.printStackTrace();
+				LOG.severe(e.getMessage());
 			}
 		};
 	}
@@ -95,77 +124,17 @@ public class ShaSumMain
 		}));
 	}
 
-	private static boolean cmdHasHelpArgument(CommandLine cmdLine) {
+	private static boolean cmdHasHelpArgument(final CommandLine cmdLine) {
 		return cmdLine.hasOption("h") && cmdLine.getArgList().size() == 1;
 	}
 
-	private static String extractAlgorithm(CommandLine cmdLine) {
+	private static String extractAlgorithm(final CommandLine cmdLine) {
 		if(cmdLine.hasOption("a")) {
-			System.out.println(cmdLine.getOptionValue("a"));
+			LOG.info(cmdLine.getOptionValue("a"));
 			return cmdLine.getOptionValue("a");
-		}else {return "1";}
-	}
-
-	private static Options buildOptions(Option ... opts) {
-		if(opts == null || opts.length > 10) throw new IllegalArgumentException("The option size in invlaid");
-		Options options = new Options();
-		Arrays.asList(opts).stream().forEach(opt -> {
-			options.addOption(opt);
-		});
-		return options;
-	}
-
-	private static Option createAlgorithm() {
-		
-		return Option.builder("a")
-				.argName("algorithm")
-				.hasArg()
-				.longOpt("algorithm")
-				.numberOfArgs(1)
-				.required(false)
-				.desc("1 (default), 224, 256, 384, 512, 512224, 512256")
-				.build();
-	}
-
-	private static Option helpOption() {
-		return Option.builder("h").argName("help")
-        		.hasArg(false)
-        		.longOpt("help")
-        		.numberOfArgs(0)
-        		.desc("Usage: shasum [OPTION]... [ARGS]... [FILE]...\n" + 
-        				"Print or check SHA checksums.\n" + 
-        				"With no FILE, or when FILE is -, read standard input.\n" + 
-        				"\n" + 
-        				"  -a, --algorithm   1 (default), 224, 256, 384, 512, 512224, 512256\n" + 
-        				"  -b, --binary      read in binary mode\n" + 
-        				"  -c, --check       read SHA sums from the FILEs and check them\n" + 
-        				"  -t, --text        read in text mode (default)\n" + 
-        				"  -p, --portable    read in portable mode\n" + 
-        				"                        produces same digest on Windows/Unix/Mac\n" + 
-        				"  -0, --01          read in BITS mode\n" + 
-        				"                        ASCII '0' interpreted as 0-bit,\n" + 
-        				"                        ASCII '1' interpreted as 1-bit,\n" + 
-        				"                        all other characters ignored\n" + 
-        				"\n" + 
-        				"The following two options are useful only when verifying checksums:\n" + 
-        				"  -s, --status      don't output anything, status code shows success\n" + 
-        				"  -w, --warn        warn about improperly formatted checksum lines\n" + 
-        				"\n" + 
-        				"  -h, --help        display this help and exit\n" + 
-        				"  -v, --version     output version information and exit\n" + 
-        				"\n" + 
-        				"When verifying SHA-512/224 or SHA-512/256 checksums, indicate the\n" + 
-        				"algorithm explicitly using the -a option, e.g.\n" + 
-        				"\n" + 
-        				"  shasum -a 512224 -c checksumfile\n" + 
-        				"\n" + 
-        				"The sums are computed as described in FIPS-180-4.  When checking, the\n" + 
-        				"input should be a former output of this program.  The default mode is to\n" + 
-        				"print a line with checksum, a character indicating type (`*' for binary,\n" + 
-        				"` ' for text, `?' for portable, `^' for BITS), and name for each FILE.\n" + 
-        				"\n" + 
-        				"Report shasum bugs to bwa@adorsys.de")
-        		.build();
+		} else {
+			return "1";
+		}
 	}
 
 }
