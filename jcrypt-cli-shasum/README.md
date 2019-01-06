@@ -23,4 +23,4 @@ This command line utility use the Java Cryptographic Api to compute digests. The
 
 ## Example
 
-`jcrypt-cli-shasum$ ./jcryptcli-shasum.sh -a 256 -f ${YOUR_DEV_HOME}/jcrypt-cli/jcrypt-cli-shasum/jcryptcli-shasum.sh abd`
+`jcrypt-cli-shasum$ ./jcryptcli-shasum.sh -a 256 -f ${YOUR_DEV_HOME}/jcrypt-cli/jcrypt-cli-shasum/jcryptcli-shasum.sh`
