@@ -5,3 +5,9 @@ target/
 .project
 
 .pmd
+
+.idea
+
+../.DS_Store
+
+jcrypt-cli-shasum.iml

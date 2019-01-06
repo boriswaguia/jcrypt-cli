@@ -13,30 +13,25 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  ******************************************************************************/
-package com.jcryptcli.shasum;
 
-import com.jcryptcli.shasum.args.reader.SupportedArgumentParser;
-import com.jcryptcli.shasum.util.SHaUtil;
+package com.jcryptcli.shasum.args.reader.commoncli;
 
-import java.util.Map;
-import java.util.logging.Logger;
+import com.jcryptcli.shasum.args.reader.ArgumentParser;
+import com.jcryptcli.shasum.args.shared.Arguments;
 
 /**
- * ShaSumMain !
+ *
+ * CommonCliArgReader
+ *
+ * @author bwa
  *
  */
-public final class ShaSumMain 
-{
-	private static final Logger log = Logger.getLogger(ShaSumMain.class.getName());
-
-	private ShaSumMain() {}
-	
-	/** Main method */
-    public static void main( final String[] args ) {
-		Map<String, String> result = new SHaUtil().parseAndCreateSha(args, SupportedArgumentParser.COMMON_CLI);
-		result.forEach((key, value) -> {
-			log.info(String.format("%s \t %s", key, value));
-		});
-    }
-
+public class CommonCliArgReader implements ArgumentParser {
+  /* (non-Javadoc)
+   * @see com.jcryptcli.shasum.args.reader.ArgumentParser#parse(java.lang.String[])
+   */
+  @Override
+  public Arguments parse(String[] args) {
+    return new CommonCliArguments(args);
+  }
 }

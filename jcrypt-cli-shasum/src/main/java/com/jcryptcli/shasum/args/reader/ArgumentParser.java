@@ -14,21 +14,22 @@
  * the License.
  ******************************************************************************/
 
-package com.jcryptcli.shasum.args;
+package com.jcryptcli.shasum.args.reader;
 
-import org.apache.commons.cli.Option;
+import com.jcryptcli.shasum.args.shared.Arguments;
 
 /**
  *
- * HasCmdLine
+ * ArgumentParser
  *
  * @author bwa
  *
  */
-interface HasCmdLineArg {
-	/**
-	 * Return a command line argument
-	 * @return
-	 */
-	Option getArg();
+public interface ArgumentParser {
+
+  /**
+   * @param args
+   * @return
+   */
+  Arguments parse(String[] args);
 }
