@@ -35,6 +35,7 @@ Java command line utility so compute SHAs messages digest for a given set of par
 This command line utility use the Java Cryptographic Api to compute digests. The cli support two parameters
 
 - `-a, --algorithm : 1 (default), 224, 256, 384, 512, 512224, 512256`
+- `-f : comma separated list of files`
 - `ARGS: A list of strings or files paths (/Users/bwa/dev/opensource/bwa/jcrypt-cli/jcrypt-cli-shasum/jcryptcli-shasum.sh abd)`
 
 ## Example

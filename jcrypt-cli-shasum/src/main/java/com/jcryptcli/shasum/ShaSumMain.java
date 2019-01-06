@@ -35,7 +35,7 @@ public final class ShaSumMain
     public static void main( final String[] args ) {
 		Map<String, String> result = new SHaUtil().parseAndCreateSha(args, SupportedArgumentParser.COMMON_CLI);
 		result.forEach((key, value) -> {
-			log.info(String.format("%s \t %s", key, value));
+			System.out.println(String.format("%s \t %s", key, value));
 		});
     }
 

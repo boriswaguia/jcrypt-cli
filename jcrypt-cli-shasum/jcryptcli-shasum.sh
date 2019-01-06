@@ -1,6 +1,6 @@
 #!/bin/bash
 
-mvn clean package -DskipTests
+mvn clean package
 clear
 echo "Verifying sha"
 java -jar target/jcrypt-cli-shasum-1.0-SNAPSHOT.jar $@
